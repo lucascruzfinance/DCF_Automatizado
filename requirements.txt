@@ -1,0 +1,26 @@
+# ===== Coleta de dados =====
+yfinance>=0.2.40
+python-bcb>=0.3.0
+requests>=2.31.0
+
+# ===== Processamento e cálculo =====
+pandas>=2.2.0
+numpy>=1.26.0
+pyarrow>=16.0.0
+
+# ===== Visualização e exportação =====
+plotly>=5.22.0
+kaleido>=0.2.1
+openpyxl>=3.1.2
+
+# ===== Front-end institucional =====
+streamlit>=1.37.0
+streamlit-aggrid>=1.0.5
+
+# ===== Qualidade de código e testes =====
+pytest>=8.2.0
+black>=24.4.0
+flake8>=7.0.0
+
+# ===== Infraestrutura =====
+python-dotenv>=1.0.1
