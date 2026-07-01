@@ -1,0 +1,111 @@
+{
+  "versao": 1,
+  "descricao": "Mapeamento de CD_CONTA da CVM para nomes padronizados do sistema.",
+  "campos": {
+    "receita_liquida": {
+      "descricao": "Receita Liquida",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": ["3.01"]
+    },
+    "cpv_cmv": {
+      "descricao": "CPV/CMV",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": ["3.02"]
+    },
+    "lucro_bruto": {
+      "descricao": "Lucro Bruto",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": ["3.03"]
+    },
+    "ebit": {
+      "descricao": "EBIT",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": ["3.05"]
+    },
+    "depreciacao_amortizacao": {
+      "descricao": "Depreciacao e Amortizacao",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": ["6.01.01.02", "6.02.01.02"]
+    },
+    "receitas_financeiras": {
+      "descricao": "Receitas Financeiras",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": ["3.06.01"]
+    },
+    "despesas_financeiras": {
+      "descricao": "Despesas Financeiras",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": ["3.06.02"]
+    },
+    "resultado_financeiro": {
+      "descricao": "Resultado Financeiro",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": ["3.06"]
+    },
+    "ebt": {
+      "descricao": "EBT",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": ["3.07"]
+    },
+    "ir_csll": {
+      "descricao": "IR/CSLL",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": ["3.08"]
+    },
+    "lucro_liquido": {
+      "descricao": "Lucro Liquido",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": ["3.11"]
+    },
+    "caixa_equivalentes": {
+      "descricao": "Caixa e Equivalentes",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": ["1.01.01"]
+    },
+    "aplicacoes_financeiras": {
+      "descricao": "Aplicacoes Financeiras",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": ["1.01.02"]
+    },
+    "contas_receber": {
+      "descricao": "Contas a Receber",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": ["1.01.03", "1.01.03.01"]
+    },
+    "estoques": {
+      "descricao": "Estoques",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": ["1.01.04"]
+    },
+    "fornecedores": {
+      "descricao": "Fornecedores",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": ["2.01.02"]
+    },
+    "imobilizado": {
+      "descricao": "Imobilizado",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": ["1.02.03"]
+    },
+    "divida_curto_prazo": {
+      "descricao": "Divida de Curto Prazo",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": ["2.01.04", "2.01.04.01", "2.01.04.02"]
+    },
+    "divida_longo_prazo": {
+      "descricao": "Divida de Longo Prazo",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": ["2.02.01", "2.02.01.01", "2.02.01.02"]
+    },
+    "patrimonio_liquido": {
+      "descricao": "Patrimonio Liquido",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": ["2.03"]
+    },
+    "participacao_nao_controladores": {
+      "descricao": "Participacao de Nao Controladores",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": ["2.03.09"]
+    }
+  }
+}

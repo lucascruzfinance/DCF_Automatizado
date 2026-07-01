@@ -1,0 +1,13 @@
+{
+  "horizonte_projecao_anos": 8,
+  "anos_historicos_coleta": 7,
+  "checklist": {
+    "crescimento_perpetuidade_maximo_brl": 0.05,
+    "vp_valor_terminal_maximo_percentual_ev": 0.85,
+    "taxa_reinvestimento_minima": 0.0,
+    "taxa_reinvestimento_maxima": 1.0,
+    "roiic_maximo_ultimos_2_anos": 0.5,
+    "fco_ebitda_minimo": 0.7,
+    "divida_liquida_ebitda_maximo": 4.0
+  }
+}

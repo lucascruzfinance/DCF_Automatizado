@@ -102,19 +102,23 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
 
 > **ATUALIZAR ESTA SEÇÃO AO FINAL DE CADA SESSÃO.**
 
-- **Data da última atualização:** [preencher]
+- **Data da última atualização:** 01/07/2026
 - **Versão alvo:** v1.0 (prazo: 06/08/2026)
 - **Fase atual:** SEMANA 0 — Fundação + Coleta inicial
 - **O que está PRONTO e VALIDADO:**
-  - [ainda nada — projeto no dia 1]
+  - Estrutura de pastas inicial criada conforme o README.
+  - Arquivos de configuração criados: `config/setores.json`, `config/mapeamento_cvm.json` e `config/parametros.json`.
+  - Templates de premissas criados em `data/premissas/` com campos individuais por ano.
+  - Excel de referência da Direcional movido para `tests/fixtures/Direcional_DIRR3_referencia.xlsx`.
 - **O que está EM PROGRESSO:**
-  - Estrutura de pastas, arquivos de config, coletor da CVM
+  - Coletor da CVM.
 - **PRÓXIMA TAREFA:**
-  - Criar estrutura de pastas dos 5 módulos, configs (setores, mapeamento_cvm, parametros), templates de premissas com 8 campos individuais, e o coletor_cvm.py universal rodando para DIRR3 e MGLU3.
+  - Implementar `src/coleta/coletor_cvm.py` universal, rodando para DIRR3 e MGLU3, gerando `_meta.json` e dados brutos/mapeados da CVM.
 - **Decisões de arquitetura tomadas nesta sessão:**
-  - [preencher ao final de cada sessão]
+  - `config/mapeamento_cvm.json` foi estruturado por campo padronizado, com lista de `codigos_cvm` para permitir múltiplos códigos por grandeza conforme setor/tipo de empresa.
+  - `config/setores.json` separa `nao_financeiras` e `financeiras`; a trilha financeira ficou apenas como esqueleto para v1.5.
 - **Bugs conhecidos / pendências:**
-  - [preencher]
+  - `src/coleta/coletor_cvm.py` ainda não implementado.
 
 ---
 
