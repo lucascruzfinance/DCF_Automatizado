@@ -102,9 +102,9 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
 
 > **ATUALIZAR ESTA SEÇÃO AO FINAL DE CADA SESSÃO.**
 
-- **Data da última atualização:** 01/07/2026
+- **Data da última atualização:** 02/07/2026
 - **Versão alvo:** v1.0 (prazo: 06/08/2026)
-- **Fase atual:** SEMANA 0 — Fundação + Coleta inicial
+- **Fase atual:** SEMANA 2 — Projeção das demonstrações
 - **O que está PRONTO e VALIDADO:**
   - Estrutura inicial de pastas e pacotes Python criada.
   - Arquivos de configuração criados: `config/setores.json`, `config/mapeamento_cvm.json` e `config/parametros.json`.
@@ -114,10 +114,15 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
   - DIRR3 e MGLU3 foram detectadas como `nao_financeira`.
   - Ambiente Python 3.11.9 com `.venv` criado; `pip check`, `black`, `flake8` e `pytest` executados com sucesso.
   - Excel de referência da Direcional movido para `tests/fixtures/Direcional_DIRR3_referencia.xlsx`.
+  - `src/projecao/projetor_dre.py` criado: lê 8 premissas individuais de crescimento de receita e 8 de margem EBITDA, usa Ano 0 diretamente de `data/raw/cvm/` quando não há Parquet em `data/processed/`, projeta DRE de `ano1` a `ano8` e grava `data/processed/<TICKER>_projecao.json`.
+  - `data/premissas/MGLU3_premissas.json` criado a partir do template de não-financeiras com premissas genéricas conservadoras e campos anuais individuais para testar o pipeline.
+  - `config/mapeamento_cvm.json` ampliado com nomes padronizados usados pela DRE projetada: `ano_projecao`, `taxa_crescimento_receita`, `margem_ebitda` e `ebitda`.
+  - Testes do projetor de DRE criados em `tests/test_projetor_dre.py`; `black --check`, `flake8` e `pytest tests -v` passaram.
 - **O que está EM PROGRESSO:**
+  - Etapa 2 / Semana 2: projeção integrada das três demonstrações.
   - Validação humana dos números coletados para DIRR3 e MGLU3.
 - **PRÓXIMA TAREFA:**
-  - Semana 1: implementar `src/coleta/coletor_mercado.py`.
+  - Semana 2: implementar `src/projecao/schedule_wk.py`.
 - **Decisões de arquitetura tomadas nesta sessão:**
   - O coletor usa o cadastro de companhias abertas e os arquivos FCA da CVM para relacionar ticker negociado ao `CD_CVM`.
   - Como o FCA recente traz `CNPJ_Companhia` em vez de `CD_CVM`, o coletor cruza `FCA.CNPJ_Companhia` com `cad_cia_aberta.CNPJ_CIA` para obter o `CD_CVM`.
@@ -125,8 +130,14 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
   - Contas CVM fora de `config/mapeamento_cvm.json` são registradas em `logs/contas_cvm_nao_mapeadas.log` sem interromper a coleta.
   - Os dados persistidos mantêm campos brutos da CVM e adicionam `nome_padronizado`, `sinal_esperado` e `valor_padronizado`.
   - `.gitignore` foi ajustado para ignorar dados gerados (`data/raw`, `data/processed`, `outputs`, `logs`) e manter templates/estrutura via `.gitkeep`.
+  - O projetor de DRE usa `data/processed/<TICKER>*.parquet` se existir; se não existir, usa diretamente `data/raw/cvm/<TICKER>_dre.json` com `nome_padronizado` e `valor_padronizado`.
+  - A D&A fica como placeholder explícito em `depreciacao_amortizacao = 0.0` até o schedule PP&E sobrescrever a coluna.
+  - O resultado financeiro fica como placeholder explícito em `resultado_financeiro = 0.0` até o schedule de dívida sobrescrever a coluna.
+  - O IR/CSLL é gravado com sinal negativo; para empresas gerais usa 34% sobre EBT positivo, e para construtoras em RET usa 4% sobre receita.
 - **Bugs conhecidos / pendências:**
   - A validação numérica de Receita Líquida e Lucro Líquido contra RI/Status Invest ainda depende de conferência humana.
+  - O RET deveria incidir sobre Receita Bruta, mas o coletor atual só traz Receita Líquida (CVM 3.01); a DRE projetada usa Receita Líquida como proxy até existir uma linha confiável de Receita Bruta.
+  - `data/premissas/DIRR3_premissas.json` não está presente no repo local; a execução direta de `src/projecao/projetor_dre.py` falha para DIRR3 com erro explícito até o arquivo real de premissas ser recolocado.
 
 ---
 

@@ -57,6 +57,26 @@
       "sinal_esperado": "positivo_ou_negativo",
       "codigos_cvm": ["3.11"]
     },
+    "ano_projecao": {
+      "descricao": "Ano da Projecao",
+      "sinal_esperado": "nao_aplicavel",
+      "codigos_cvm": []
+    },
+    "taxa_crescimento_receita": {
+      "descricao": "Taxa de Crescimento da Receita",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "margem_ebitda": {
+      "descricao": "Margem EBITDA",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "ebitda": {
+      "descricao": "EBITDA",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
     "caixa_equivalentes": {
       "descricao": "Caixa e Equivalentes",
       "sinal_esperado": "positivo",
