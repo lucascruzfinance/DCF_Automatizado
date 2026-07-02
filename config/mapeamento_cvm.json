@@ -102,6 +102,16 @@
       "sinal_esperado": "negativo",
       "codigos_cvm": ["2.01.02"]
     },
+    "nwc": {
+      "descricao": "Capital de Giro Liquido",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "delta_nwc": {
+      "descricao": "Variacao do Capital de Giro Liquido",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
     "imobilizado": {
       "descricao": "Imobilizado",
       "sinal_esperado": "positivo",
