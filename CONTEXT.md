@@ -113,6 +113,7 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
   - Coletor CVM validado localmente para DIRR3 e MGLU3: gera `_meta.json`, DRE, BP e DFC em JSON para as duas empresas.
   - DIRR3 e MGLU3 foram detectadas como `nao_financeira`.
   - Ambiente Python 3.11.9 com `.venv` criado; `pip check`, `black`, `flake8` e `pytest` executados com sucesso.
+  - Excel de referência da Direcional movido para `tests/fixtures/Direcional_DIRR3_referencia.xlsx`.
 - **O que está EM PROGRESSO:**
   - Validação humana dos números coletados para DIRR3 e MGLU3.
 - **PRÓXIMA TAREFA:**
@@ -125,7 +126,6 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
   - Os dados persistidos mantêm campos brutos da CVM e adicionam `nome_padronizado`, `sinal_esperado` e `valor_padronizado`.
   - `.gitignore` foi ajustado para ignorar dados gerados (`data/raw`, `data/processed`, `outputs`, `logs`) e manter templates/estrutura via `.gitkeep`.
 - **Bugs conhecidos / pendências:**
-  - O Excel `tests/fixtures/Direcional_DIRR3_referencia.xlsx` não está presente neste workspace atual; não havia arquivo `.xlsx` na raiz para mover.
   - A validação numérica de Receita Líquida e Lucro Líquido contra RI/Status Invest ainda depende de conferência humana.
 
 ---
