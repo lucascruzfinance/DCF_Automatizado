@@ -116,15 +116,19 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
   - Excel de referência da Direcional movido para `tests/fixtures/Direcional_DIRR3_referencia.xlsx`.
   - `src/projecao/projetor_dre.py` criado: lê 8 premissas individuais de crescimento de receita e 8 de margem EBITDA, usa Ano 0 diretamente de `data/raw/cvm/` quando não há Parquet em `data/processed/`, projeta DRE de `ano1` a `ano8` e grava `data/processed/<TICKER>_projecao.json`.
   - `src/projecao/schedule_wk.py` criado: lê DSO/DIO/DPO de `data/premissas/<TICKER>_premissas.json`, usa a receita projetada em `data/processed/<TICKER>_projecao.json`, calcula contas a receber, estoques, fornecedores, NWC e ΔNWC de `ano1` a `ano8`, e grava o schedule em `wk` no JSON de projeção.
+  - `src/projecao/schedule_ppe.py` criado: lê obrigatoriamente `capex_receita_ano1..8`, usa a receita projetada, carrega o imobilizado histórico de `data/raw/cvm/<TICKER>_bp.json`, calcula CAPEX, D&A e PP&E de `ano1` a `ano8`, grava o bloco `ppe` em `data/processed/<TICKER>_projecao.json` e devolve a D&A para a DRE projetada.
   - `data/premissas/MGLU3_premissas.json` criado a partir do template de não-financeiras com premissas genéricas conservadoras e campos anuais individuais para testar o pipeline.
+  - `data/premissas/DIRR3_premissas.json` criado com premissas simples e explicáveis apenas para teste do pipeline: crescimento de receita de 1% ao ano, margem EBITDA de 10%, CAPEX/Receita de -1% ao ano, prazos de giro de 30 dias e parâmetros básicos de custo de capital. Não usar como tese real de valuation.
+  - `config/parametros.json` ampliado com `vida_util_ppe_anos`, usado pelo schedule PP&E para calcular a taxa de depreciação sem hard-code.
   - `config/mapeamento_cvm.json` ampliado com nomes padronizados usados pela DRE projetada e pelo schedule WK: `ano_projecao`, `taxa_crescimento_receita`, `margem_ebitda`, `ebitda`, `nwc` e `delta_nwc`.
   - Testes do projetor de DRE criados em `tests/test_projetor_dre.py`; `black --check`, `flake8` e `pytest tests -v` passaram.
   - Testes do schedule WK criados em `tests/test_schedule_wk.py`; `black --check`, `flake8` e `pytest tests -v` passaram.
+  - Testes do schedule PP&E criados em `tests/test_schedule_ppe.py`, cobrindo premissas anuais obrigatórias, piso de PP&E em zero e igualdade entre D&A da DRE e D&A do schedule; `black --check`, `flake8` e `pytest tests -v` passaram.
 - **O que está EM PROGRESSO:**
   - Etapa 2 / Semana 2: projeção integrada das três demonstrações.
   - Validação humana dos números coletados para DIRR3 e MGLU3.
 - **PRÓXIMA TAREFA:**
-  - Semana 2: implementar o schedule PP&E.
+  - Semana 2: implementar o schedule de dívida.
 - **Decisões de arquitetura tomadas nesta sessão:**
   - O coletor usa o cadastro de companhias abertas e os arquivos FCA da CVM para relacionar ticker negociado ao `CD_CVM`.
   - Como o FCA recente traz `CNPJ_Companhia` em vez de `CD_CVM`, o coletor cruza `FCA.CNPJ_Companhia` com `cad_cia_aberta.CNPJ_CIA` para obter o `CD_CVM`.
@@ -139,10 +143,12 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
   - O schedule WK mantém `fornecedores` como passivo negativo no BP; por isso o NWC é calculado como `contas_receber + estoques + fornecedores`, equivalente a `contas_receber + estoques - fornecedores_abs`.
   - O `delta_nwc` é gravado como variação aritmética (`NWC_t - NWC_(t-1)`); quando positivo, representa consumo de caixa e deve entrar no FCF como `-delta_nwc`.
   - Enquanto a DRE projetada não trouxer CPV/CMV projetado, o schedule WK usa o índice histórico `abs(cpv_cmv_ano0) / receita_ano0` como base de CPV para estoques e fornecedores; se não houver CPV histórico, cai para margem bruta opcional ou receita líquida como proxy comentada no código.
+  - O schedule PP&E trata `depreciacao_amortizacao` como valor positivo calculado sobre o PP&E; ao devolver a série para a DRE, recalcula `EBIT = EBITDA - D&A`, depois `EBT`, `IR/CSLL` e `lucro_liquido`.
+  - `vida_util_ppe_anos` é parâmetro global em `config/parametros.json`; a taxa anual usada no schedule é `1 / vida_util_ppe_anos`.
+  - O CAPEX projetado preserva o sinal informado em `capex_receita_anoN`: `CAPEX_t = capex_receita_anoN * receita_t`.
 - **Bugs conhecidos / pendências:**
   - A validação numérica de Receita Líquida e Lucro Líquido contra RI/Status Invest ainda depende de conferência humana.
   - O RET deveria incidir sobre Receita Bruta, mas o coletor atual só traz Receita Líquida (CVM 3.01); a DRE projetada usa Receita Líquida como proxy até existir uma linha confiável de Receita Bruta.
-  - `data/premissas/DIRR3_premissas.json` não está presente no repo local; a execução direta de `src/projecao/projetor_dre.py` e `src/projecao/schedule_wk.py` falha para DIRR3 com erro explícito até o arquivo real de premissas ser recolocado.
 
 ---
 
