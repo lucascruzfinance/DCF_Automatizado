@@ -2,6 +2,7 @@
   "horizonte_projecao_anos": 8,
   "anos_historicos_coleta": 7,
   "vida_util_ppe_anos": 10,
+  "payout_dividendos": 0,
   "checklist": {
     "crescimento_perpetuidade_maximo_brl": 0.05,
     "vp_valor_terminal_maximo_percentual_ev": 0.85,

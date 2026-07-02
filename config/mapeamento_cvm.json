@@ -117,6 +117,16 @@
       "sinal_esperado": "positivo",
       "codigos_cvm": ["1.02.03"]
     },
+    "capex_receita": {
+      "descricao": "CAPEX sobre Receita",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "capex": {
+      "descricao": "CAPEX",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": []
+    },
     "divida_curto_prazo": {
       "descricao": "Divida de Curto Prazo",
       "sinal_esperado": "negativo",
@@ -127,10 +137,80 @@
       "sinal_esperado": "negativo",
       "codigos_cvm": ["2.02.01", "2.02.01.01", "2.02.01.02"]
     },
+    "divida_bruta": {
+      "descricao": "Divida Bruta",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": []
+    },
+    "saldo_medio_divida": {
+      "descricao": "Saldo Medio da Divida",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": []
+    },
+    "juros": {
+      "descricao": "Juros sobre Divida",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": []
+    },
+    "delta_divida": {
+      "descricao": "Variacao da Divida Bruta",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
     "patrimonio_liquido": {
       "descricao": "Patrimonio Liquido",
       "sinal_esperado": "positivo_ou_negativo",
       "codigos_cvm": ["2.03"]
+    },
+    "outros_ativos": {
+      "descricao": "Outros Ativos Projetados",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "outros_passivos": {
+      "descricao": "Outros Passivos Projetados",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "ativo_total": {
+      "descricao": "Ativo Total Projetado",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "passivo_total": {
+      "descricao": "Passivo Total Projetado",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "passivo_patrimonio_liquido": {
+      "descricao": "Passivo mais Patrimonio Liquido Projetado",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "diferenca_balanco": {
+      "descricao": "Diferenca de Fechamento do Balanco",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "dividendos": {
+      "descricao": "Dividendos Projetados",
+      "sinal_esperado": "negativo",
+      "codigos_cvm": []
+    },
+    "capex_saida_caixa": {
+      "descricao": "CAPEX como Saida de Caixa",
+      "sinal_esperado": "positivo",
+      "codigos_cvm": []
+    },
+    "fluxo_caixa_livre": {
+      "descricao": "Fluxo de Caixa Livre Projetado",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
+    },
+    "variacao_caixa_plug": {
+      "descricao": "Variacao do Caixa Plug",
+      "sinal_esperado": "positivo_ou_negativo",
+      "codigos_cvm": []
     },
     "participacao_nao_controladores": {
       "descricao": "Participacao de Nao Controladores",

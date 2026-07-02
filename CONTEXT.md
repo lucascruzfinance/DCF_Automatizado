@@ -117,18 +117,20 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
   - `src/projecao/projetor_dre.py` criado: lê 8 premissas individuais de crescimento de receita e 8 de margem EBITDA, usa Ano 0 diretamente de `data/raw/cvm/` quando não há Parquet em `data/processed/`, projeta DRE de `ano1` a `ano8` e grava `data/processed/<TICKER>_projecao.json`.
   - `src/projecao/schedule_wk.py` criado: lê DSO/DIO/DPO de `data/premissas/<TICKER>_premissas.json`, usa a receita projetada em `data/processed/<TICKER>_projecao.json`, calcula contas a receber, estoques, fornecedores, NWC e ΔNWC de `ano1` a `ano8`, e grava o schedule em `wk` no JSON de projeção.
   - `src/projecao/schedule_ppe.py` criado: lê obrigatoriamente `capex_receita_ano1..8`, usa a receita projetada, carrega o imobilizado histórico de `data/raw/cvm/<TICKER>_bp.json`, calcula CAPEX, D&A e PP&E de `ano1` a `ano8`, grava o bloco `ppe` em `data/processed/<TICKER>_projecao.json` e devolve a D&A para a DRE projetada.
+  - `src/projecao/schedule_divida.py` criado: lê `custo_divida_kd`, carrega dívida CP/LP, caixa, aplicações e PL do Ano 0, calcula juros por saldo médio, atualiza resultado financeiro da DRE, monta `balanco`, `divida` e `dfc` em `data/processed/<TICKER>_projecao.json` e verifica `Ativo = Passivo + PL` nos 8 anos.
   - `data/premissas/MGLU3_premissas.json` criado a partir do template de não-financeiras com premissas genéricas conservadoras e campos anuais individuais para testar o pipeline.
   - `data/premissas/DIRR3_premissas.json` criado com premissas simples e explicáveis apenas para teste do pipeline: crescimento de receita de 1% ao ano, margem EBITDA de 10%, CAPEX/Receita de -1% ao ano, prazos de giro de 30 dias e parâmetros básicos de custo de capital. Não usar como tese real de valuation.
-  - `config/parametros.json` ampliado com `vida_util_ppe_anos`, usado pelo schedule PP&E para calcular a taxa de depreciação sem hard-code.
-  - `config/mapeamento_cvm.json` ampliado com nomes padronizados usados pela DRE projetada e pelo schedule WK: `ano_projecao`, `taxa_crescimento_receita`, `margem_ebitda`, `ebitda`, `nwc` e `delta_nwc`.
+  - `config/parametros.json` ampliado com `vida_util_ppe_anos`, usado pelo schedule PP&E para calcular a taxa de depreciação sem hard-code, e `payout_dividendos`, usado no fechamento do PL.
+  - `config/mapeamento_cvm.json` ampliado com nomes padronizados usados pela DRE projetada, WK, PP&E, dívida, balanço e DFC.
   - Testes do projetor de DRE criados em `tests/test_projetor_dre.py`; `black --check`, `flake8` e `pytest tests -v` passaram.
   - Testes do schedule WK criados em `tests/test_schedule_wk.py`; `black --check`, `flake8` e `pytest tests -v` passaram.
   - Testes do schedule PP&E criados em `tests/test_schedule_ppe.py`, cobrindo premissas anuais obrigatórias, piso de PP&E em zero e igualdade entre D&A da DRE e D&A do schedule; `black --check`, `flake8` e `pytest tests -v` passaram.
+  - Testes do schedule de dívida criados em `tests/test_schedule_divida.py`, cobrindo juros, resultado financeiro, recálculo da DRE, DFC simplificado e fechamento do balanço; `schedule_divida.py` rodou direto para DIRR3 e MGLU3 imprimindo diferença zero nos 8 anos.
 - **O que está EM PROGRESSO:**
   - Etapa 2 / Semana 2: projeção integrada das três demonstrações.
   - Validação humana dos números coletados para DIRR3 e MGLU3.
 - **PRÓXIMA TAREFA:**
-  - Semana 2: implementar o schedule de dívida.
+  - Semana 2: implementar o calculador de FCFF/FCFE.
 - **Decisões de arquitetura tomadas nesta sessão:**
   - O coletor usa o cadastro de companhias abertas e os arquivos FCA da CVM para relacionar ticker negociado ao `CD_CVM`.
   - Como o FCA recente traz `CNPJ_Companhia` em vez de `CD_CVM`, o coletor cruza `FCA.CNPJ_Companhia` com `cad_cia_aberta.CNPJ_CIA` para obter o `CD_CVM`.
@@ -146,6 +148,12 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
   - O schedule PP&E trata `depreciacao_amortizacao` como valor positivo calculado sobre o PP&E; ao devolver a série para a DRE, recalcula `EBIT = EBITDA - D&A`, depois `EBT`, `IR/CSLL` e `lucro_liquido`.
   - `vida_util_ppe_anos` é parâmetro global em `config/parametros.json`; a taxa anual usada no schedule é `1 / vida_util_ppe_anos`.
   - O CAPEX projetado preserva o sinal informado em `capex_receita_anoN`: `CAPEX_t = capex_receita_anoN * receita_t`.
+  - O schedule de dívida usa a política v1 `divida_bruta_constante_sem_amortizacao`: mantém a dívida bruta do Ano 0 constante, preservando a proporção CP/LP inicial; logo `delta_divida = 0` nesta versão.
+  - O resultado financeiro projetado é `-juros`, com `juros = custo_divida_kd x saldo_medio_divida`; receita financeira sobre caixa não é modelada nesta versão.
+  - O payout escolhido em `config/parametros.json` é `payout_dividendos = 0`; assim `PL_t = PL_(t-1) + LL_t` enquanto a política de dividendos real não for definida.
+  - O balanço usa `caixa_equivalentes` como plug de fechamento: `caixa = passivo_total + PL - ativos_sem_caixa`. Aplicações financeiras ficam constantes no saldo do Ano 0; outros ativos e outros passivos ficam zerados nesta versão.
+  - Para o balanço projetado, fornecedores e dívida entram como magnitudes positivas no passivo; o schedule WK continua preservando fornecedores negativo para cálculo de NWC.
+  - O DFC simplificado gravado em `dfc` usa `LL + D&A - ΔNWC - CAPEX + ΔDívida`; como o PP&E salva CAPEX assinado, o DFC subtrai a magnitude `capex_saida_caixa = abs(capex)`.
 - **Bugs conhecidos / pendências:**
   - A validação numérica de Receita Líquida e Lucro Líquido contra RI/Status Invest ainda depende de conferência humana.
   - O RET deveria incidir sobre Receita Bruta, mas o coletor atual só traz Receita Líquida (CVM 3.01); a DRE projetada usa Receita Líquida como proxy até existir uma linha confiável de Receita Bruta.

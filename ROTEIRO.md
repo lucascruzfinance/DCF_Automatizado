@@ -179,6 +179,9 @@ em anos de prejuízo.
   ano × Receita do ano; ativo para de depreciar em zero; devolve D&A para a DRE.
 - **schedule_divida.py:** juros = Kd × saldo médio; atualiza resultado financeiro da
   DRE; verifica fechamento do balanço nos 8 anos, imprimindo cada verificação.
+  Decisão v1: dívida bruta constante sem amortização, aplicações constantes, payout
+  0%, sem receita financeira sobre caixa, outros ativos/passivos zerados e caixa como
+  plug para fechar `Ativo = Passivo + PL`.
 - **test_projecao.py:** pytest validando Ativo = Passivo + PL em cada um dos 8 anos.
 
 **Pronto quando:** `pytest tests/test_projecao.py` verde; balanço fecha nos 8 anos
