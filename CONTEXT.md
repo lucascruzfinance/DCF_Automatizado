@@ -27,6 +27,11 @@ A v1.0 é **deliberadamente enxuta**. O objetivo é profundidade, não amplitude
 
 > ⚠️ **Regra de ouro:** se surgir a tentação de "já que está quase pronto, adiciona mais um setor", NÃO faça. Cada setor novo é um poço de casos de borda de dados da CVM. Mantenha o foco em DIRR3 impecável + MGLU3 como prova.
 
+> ℹ️ **Power BI e itens pós-v1.0:** a v1.0 entrega apenas o *contrato de export* para BI
+> (as tabelas planas em `outputs/bi/`, via `exportador_bi.py`). O painel `.pbix`, o
+> módulo de Comparáveis (CCA), o Projetado vs. Realizado e a nota em PDF são **backlog
+> pós-v1.0** — ver Seção 10. Não implementar nada disso antes de fechar a tag `v1.0`.
+
 ---
 
 ## 3. Stack Técnica
@@ -35,12 +40,19 @@ A v1.0 é **deliberadamente enxuta**. O objetivo é profundidade, não amplitude
 - **Coleta:** yfinance, python-bcb, requests
 - **Processamento:** pandas, numpy, pyarrow (Parquet)
 - **Visualização:** plotly, kaleido (PNG)
-- **Exportação:** openpyxl (Excel 7 abas)
+- **Exportação:** openpyxl (Excel 7 abas), pandas/pyarrow (tabelas planas para BI)
 - **Front-end:** streamlit, streamlit-aggrid
+- **Camada de BI:** Power BI Desktop (ferramenta EXTERNA, gratuita) — apenas apresenta,
+  consumindo as tabelas planas geradas pelo motor. Não é dependência pip.
 - **Qualidade:** pytest, black, flake8
 - **Infra:** python-dotenv
 
-**Decisão de front-end travada:** Streamlit interativo + export HTML estático. O motor Python é a fonte única de verdade — NÃO reimplementar cálculo em JavaScript. O mesmo código que gera o Excel gera o dashboard.
+**Decisão de front-end travada:** Streamlit interativo + export HTML estático + painel
+Power BI executivo. O motor Python é a fonte única de verdade — NÃO reimplementar
+cálculo em JavaScript (Streamlit) nem em DAX (Power BI). O mesmo código que gera o Excel
+gera o dashboard e grava as tabelas planas (`outputs/bi/`) que o Power BI consome. Na
+v1.0 entra apenas o EXPORT das tabelas (`exportador_bi.py`); o arquivo `.pbix` é backlog
+pós-v1.0 (ver Seção 10).
 
 ---
 
@@ -165,4 +177,34 @@ Não-financeiras: balanço fecha nos 8 anos; ROIIC < 50% nos 2 últimos anos; CA
 - **Humano (Lucas):** ativa venv, preenche premissas com julgamento real, valida números contra fontes públicas, descreve bugs, commita no GitHub, atualiza este CONTEXT.md.
 - **Codex:** cria/edita todos os arquivos Python, corrige bugs descritos, roda testes, gera gráficos, exporta Excel.
 - **DeepSeek:** reservado apenas para validação de fórmula matemática (caso de borda).
-- **Claude Code:** reservado apenas para revisão final de código.
+- **Claude Code:** lê `CONTEXT.md` + `ROTEIRO.md`, gera os prompts cirúrgicos que o
+  humano cola no Codex, e faz a revisão final de código.
+
+---
+
+## 10. Camada de BI (Power BI) e Backlog Pós-v1.0
+
+**Princípio:** separar *cálculo* (motor Python, fonte única de verdade) de *apresentação*
+(Streamlit interativo + Power BI executivo). O Power BI NUNCA recalcula valuation — lê as
+tabelas planas de `outputs/bi/` e desenha visuais. Qualquer número exibido nasceu do motor.
+
+**Na v1.0 (decisão ESTRUTURAL, já entra na Semana 5 — ver Etapa 5 do `ROTEIRO.md`):**
+- `src/exportacao/exportador_bi.py` grava tabelas planas (long/star-schema) em
+  `outputs/bi/<TICKER>/`: `dim_empresa`, `dim_valuation`, `fato_demonstracoes`,
+  `fato_fcff`, `fato_sensibilidade_wacc_g`, `fato_sensibilidade_receita_margem`,
+  `fato_football_field`, `fato_historico_vs_projetado`. Nomes de coluna seguem
+  `mapeamento_cvm.json`.
+- Excel "nível Direcional": fórmulas nativas nas células de cálculo (não valores colados)
+  + convenção de cor de input (azul = premissa, preto = fórmula, verde = link entre abas).
+
+**Backlog pós-v1.0 (só depois da tag `v1.0`; detalhe na Seção 7 do `ROTEIRO.md`):**
+1. **Painel Power BI (`.pbix`)** em `powerbi/`, conectado a `outputs/bi/` (alvo v1.5).
+2. **Comparáveis / CCA** (`src/valuation/comparaveis.py`) — múltiplos de peers (alvo v2.0).
+3. **Projetado vs. Realizado** (`src/analise/projetado_vs_realizado.py`) — variância/FP&A;
+   lente nova sobre DIRR3/MGLU3, NÃO um setor novo (compatível com a regra de ouro) (v2.0).
+4. **Nota de research em PDF** (`src/exportacao/exportador_pdf.py`, requer `reportlab`) (v3.0).
+5. **Prova visual no README** — screenshots/GIF + case study DIRR3 vs. modelo InFinance.
+
+> Ao gerar prompts para o Codex sobre estes itens, o Claude Code deve confirmar antes que
+> a tag `v1.0` já foi criada. Antes disso, o único item de BI permitido é o
+> `exportador_bi.py` da Etapa 5.

@@ -116,6 +116,13 @@ Estes são os "aceites" que cada módulo deve respeitar para não quebrar o pró
   decomposição, VT, VP(VT), % do EV na perpetuidade, EV, Equity, Target Price,
   Upside, Recomendação, e o resultado do checklist. Visualização e exportação
   consomem essa mesma estrutura — não recalculam nada por conta própria.
+- **Motor -> Camada de BI (Power BI):** a MESMA estrutura de resultado alimenta um
+  exportador de tabelas planas (formato tidy/long, organizado como star-schema)
+  gravadas em `outputs/bi/<TICKER>/`. O Power BI NÃO recalcula valuation — ele apenas
+  lê essas tabelas e desenha visuais. Isso preserva a fonte única de verdade: o motor
+  Python calcula uma vez; Streamlit, Excel e Power BI apenas apresentam o mesmo
+  resultado. Regra: se um número aparece no Power BI, ele nasceu em `outputs/bi/`,
+  que nasceu do motor — nunca de uma fórmula DAX que replique a lógica do valuation.
 
 ---
 
@@ -244,10 +251,10 @@ com borda destacada; segunda tabela com % do EV na perpetuidade por combinação
 `streamlit run app.py` sobe; sidebar navega nas 6 seções; ajustar premissa reflete no
 resultado.
 
-### ETAPA 5 — Excel 7 abas + integração ponta a ponta
+### ETAPA 5 — Excel 7 abas + camada de BI + integração ponta a ponta
 
-**Arquivos:** `src/exportacao/exportador_excel.py`; `main.py`; aba Excel Preview no
-`app.py`.
+**Arquivos:** `src/exportacao/exportador_excel.py`; `src/exportacao/exportador_bi.py`;
+`main.py`; aba Excel Preview no `app.py`.
 
 - **exportador_excel.py (openpyxl):** 7 abas — (1) Capa; (2) Premissas com os 8
   valores individuais + histórico ao lado; (3) Modelo Integrado (DRE+BP+DFC, 3 anos
@@ -256,13 +263,43 @@ resultado.
   Football Field e Waterfall embutidos como PNG); (6) Sensibilidades (3 tabelas,
   formatação condicional, caso base destacado); (7) Output (dashboard + checklist).
   Cabeçalhos navy, números com separador de milhar e 2 casas, percentuais com 1 casa.
+  **Padrão de qualidade "nível Direcional" (obrigatório):** nas abas de Modelo
+  Integrado, Schedules e Valuation, as células de cálculo devem conter FÓRMULAS
+  NATIVAS do Excel (ex.: `=B5*(1+C5)`, `=SUM(...)`), não apenas valores colados — o
+  leitor deve poder clicar numa célula de EBIT e ver a fórmula, como num modelo real
+  de analista. Aplicar a convenção de cor de input de banco/WSP: **fonte azul =
+  premissa/input editável (hard-coded), fonte preta = fórmula, fonte verde = link
+  para outra aba**. Onde fizer sentido, usar nomes definidos (named ranges) para WACC
+  e g, permitindo que as sensibilidades sejam Data Tables nativas do Excel.
+- **exportador_bi.py (pandas):** consome a MESMA estrutura de resultado do motor e
+  grava tabelas planas em `outputs/bi/<TICKER>/`, prontas para o Power BI conectar por
+  "Get Data → Folder/CSV". Formato tidy/long (star-schema), NUNCA células mescladas ou
+  layout de planilha visual. Conjunto mínimo de tabelas:
+  - `dim_empresa.csv` — ticker, nome, setor, tipo, data_base, preço_atual.
+  - `dim_valuation.csv` — uma linha de escalares: wacc, ke, kd, g, vt, vp_vt,
+    pct_ev_perpetuidade, ev, divida_bruta, caixa, equity, acoes_fd, target_price,
+    upside, recomendacao.
+  - `fato_demonstracoes.csv` — long: ticker, cenario, ano (hist/proj), demonstracao,
+    linha_padronizada, valor. (DRE+BP+DFC históricos e projetados no mesmo formato.)
+  - `fato_fcff.csv` — ano, fcff, fator_desconto, vp_fcff.
+  - `fato_sensibilidade_wacc_g.csv` — wacc, g, target_price (e/ou ev).
+  - `fato_sensibilidade_receita_margem.csv` — delta_receita, delta_margem, target_price.
+  - `fato_football_field.csv` — metodologia, valor_min, valor_base, valor_max.
+  - `fato_historico_vs_projetado.csv` — metrica, ano, valor, tipo (hist/proj).
+  Opcionalmente consolidar tudo num único `modelo_bi.xlsx` (uma tabela por aba, sem
+  formatação) para o Power BI conectar a um só arquivo. Os nomes de coluna seguem o
+  `mapeamento_cvm.json` como qualquer outro módulo. **Esta etapa entrega apenas as
+  TABELAS; o arquivo `.pbix` em si é backlog pós-v1.0 (Seção 7).**
 - **main.py:** aceita `--ticker` e `--setor`; detecta tipo via `_meta.json`; executa o
-  pipeline na ordem correta com timestamps; flag `--usar-premissas-existentes`; resumo
-  final com Target Price, Upside, Recomendação, checklist.
+  pipeline na ordem correta com timestamps; flag `--usar-premissas-existentes`; gera
+  Excel, gráficos (HTML+PNG) e tabelas de BI; resumo final com Target Price, Upside,
+  Recomendação, checklist.
 
 **Pronto quando:** `python main.py --ticker DIRR3 --setor construcao
---usar-premissas-existentes` roda ponta a ponta sem erro e gera o Excel com 7 abas,
-gráficos embutidos e formatação; idem para MGLU3; Excel Preview funciona no app.
+--usar-premissas-existentes` roda ponta a ponta sem erro e gera o Excel com 7 abas
+(com fórmulas nativas e convenção de cor), os gráficos e as tabelas planas em
+`outputs/bi/DIRR3/`; idem para MGLU3; Excel Preview funciona no app; um teste rápido
+de "Get Data → Folder" no Power BI Desktop carrega as tabelas sem erro de schema.
 
 ### ETAPA FINAL — Revisão e tag v1.0
 
@@ -299,8 +336,82 @@ nunca interrompe o pipeline por um alerta — apenas sinaliza.
 - Não expandir o escopo além de DIRR3 + MGLU3 na v1.0.
 - Não reimplementar cálculo em JavaScript. O Python (motor) é a fonte única de verdade;
   o Streamlit apenas o consome.
+- Não reimplementar cálculo de valuation em DAX/Power Query. O Power BI apenas LÊ as
+  tabelas de `outputs/bi/` e desenha visuais; qualquer número que ele mostre nasceu do
+  motor Python. DAX só para agregação/formatação de apresentação, nunca para a lógica.
+- Não construir na v1.0 o arquivo `.pbix`, o módulo de Comparáveis (CCA), o módulo
+  Projetado vs. Realizado nem a nota em PDF — são backlog pós-v1.0 (Seção 7). A v1.0
+  apenas deixa PRONTO o `exportador_bi.py` (as tabelas que o Power BI vai consumir).
 - Não recriar/sobrescrever os arquivos de documentação e config da raiz que já existem.
 - Não replicar uma taxa única pelos 8 anos em nenhuma hipótese.
-- Não commitar `.env`, `data/`, `outputs/`, `.venv/`.
+- Não commitar `.env`, `data/`, `outputs/`, `.venv/`. (O `.pbix`, quando existir, mora
+  em `powerbi/` e É versionado — é entregável, não dado gerado.)
 - Não hard-codar valores que deveriam ser premissas (JSON) ou parâmetros (config).
 - Não introduzir um nome de coluna novo sem registrá-lo no `mapeamento_cvm.json`.
+
+---
+
+## 7. Backlog Pós-v1.0 (só implementar DEPOIS da tag `v1.0`)
+
+Estas são peças NOVAS — não acabamento de peças já planejadas. Só entram após a v1.0
+estar fechada, testada e com tag. Cada item abaixo está especificado com detalhe
+suficiente para que o Claude Code gere, no futuro, um prompt cirúrgico para o Codex.
+Enquanto a v1.0 não fechar, este bloco é apenas referência: **não começar nada aqui.**
+
+> Fluxo permanente (não muda): **Humano** faz o julgamento e dispara a mensagem-gatilho
+> → **Claude Code** lê `CONTEXT.md` + `ROTEIRO.md` e gera o prompt cirúrgico do item
+> → **Codex** lê o prompt e os documentos e implementa → **Humano** testa e atualiza o
+> `CONTEXT.md`.
+
+### 7.1 — Painel Power BI (`.pbix`) · alvo v1.5
+
+- **Pré-requisito:** `exportador_bi.py` da v1.0 gerando `outputs/bi/<TICKER>/`.
+- **Entregável:** `powerbi/dcf_dashboard.pbix` (versionado no Git) conectado à pasta
+  `outputs/bi/` via "Get Data → Folder". Modelo em estrela com relacionamentos entre
+  `dim_empresa`/`dim_valuation` e as tabelas `fato_*`.
+- **Páginas mínimas:** (1) Overview executivo (Target Price, Upside, Recomendação em
+  cards KPI; preço vs. target); (2) Demonstrações (DRE/BP/DFC hist. vs. proj.);
+  (3) Valuation (FCFF, ponte EV→Equity, decomposição WACC); (4) Sensibilidades
+  (matriz WACC×g e Receita×Margem com formatação condicional); (5) Football Field.
+- **Design:** mesma paleta institucional do app (navy `#0A1628`, azul âncora `#1B4F8C`,
+  verde upside `#16A34A`, vermelho downside `#DC2626`); tema salvo em `powerbi/tema.json`.
+- **Regra dura:** zero recálculo de valuation em DAX. Refresh = rodar o Python de novo
+  (CSVs sobrescrevem) e clicar "Refresh" no Power BI.
+- **Pronto quando:** o `.pbix` abre, dá Refresh sobre `outputs/bi/DIRR3/` e `MGLU3/`
+  sem erro, e os KPIs batem célula a célula com o Excel e o Streamlit.
+
+### 7.2 — Comparáveis / CCA (`src/valuation/comparaveis.py`) · alvo v2.0
+
+- Fecha o "DCF **+** CCA" do valuation profissional (triangulação por múltiplos).
+- Coleta um conjunto de peers do setor (via `config/setores.json`), puxa EV/EBITDA,
+  P/L e P/VP por yfinance, calcula mediana e quartis e deriva um preço implícito por
+  múltiplos. Alimenta as barras de Comps do Football Field (hoje placeholders) e uma
+  nova tabela `fato_comparaveis.csv` em `outputs/bi/`.
+- Robustez CVM/yfinance: peer sem múltiplo disponível vai para log, não quebra.
+- **Pronto quando:** DIRR3 e MGLU3 mostram faixa de preço por múltiplos ao lado do DCF,
+  e o Football Field usa comps reais em vez de placeholders.
+
+### 7.3 — Projetado vs. Realizado / Budget vs Actual (`src/analise/projetado_vs_realizado.py`) · alvo v2.0
+
+- Captura a competência de FP&A (análise de variância) sem expandir tickers: é uma
+  nova LENTE sobre DIRR3/MGLU3, não um setor novo — portanto compatível com a regra de
+  ouro do escopo.
+- Quando o realizado de um ano projetado sai na CVM, compara projetado × realizado
+  (receita, margem EBITDA, LL), calcula a variância e a decompõe (preço/volume/custo
+  quando possível), classificando cada variância como favorável/desfavorável.
+- Saída: tabela `fato_variancia.csv` em `outputs/bi/` (para uma página Power BI de
+  Budget vs Actual) + seção no app.
+- **Pronto quando:** existe um relatório de variância legível para pelo menos um ano
+  já realizado de DIRR3, com o racional de cada desvio.
+
+### 7.4 — Nota de research em PDF de 1 página (`src/exportacao/exportador_pdf.py`) · alvo v3.0
+
+- Entregável estilo mesa de análise: Target Price, Recomendação, Upside, 3 bullets de
+  tese, mini Football Field e tabela-resumo. Requer `reportlab` (ver `requirements.txt`).
+- **Pronto quando:** `main.py` gera um PDF de 1 página com identidade visual institucional.
+
+### 7.5 — Prova visual para recrutador (documentação) · contínuo pós-v1.0
+
+- Screenshots/GIF do dashboard (Streamlit e Power BI) no topo do `README.md`.
+- Mini case study "DIRR3 — meu modelo vs. modelo do trainee InFinance", mostrando que
+  o Target Price bate na mesma ordem de magnitude (a prova de validação mais forte).

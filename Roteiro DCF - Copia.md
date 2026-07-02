@@ -30,6 +30,44 @@ Cada semana abaixo tem exatamente esta estrutura: **(A) O que você faz como hum
 
 ---
 
+## 📌 ADENDO (02/07/2026) — Power BI + Backlog Pós-v1.0
+
+> Este bloco foi acrescentado depois do roteiro original, sem alterá-lo. Onde houver
+> conflito, valem `ROTEIRO.md` (spec técnica/contratos) e `CONTEXT.md` (estado atual)
+> como fontes autoritativas — este arquivo é o roteiro-mestre narrativo/histórico.
+
+**Contexto:** decidimos que o projeto deve tocar os três "projetos que impressionam
+recrutador" (Dashboard financeiro, Company Valuation Model, Budget vs Actual) e usar
+**Power BI**, que é o que times de finanças reconhecem. A regra para não quebrar a
+arquitetura: separar *cálculo* de *apresentação*.
+
+**Ajuste da Decisão 2 (front-end).** O Streamlit continua sendo o front-end interativo
+(ajustar premissa → motor recalcula). Somamos a ele um **painel Power BI** como camada
+de *apresentação executiva*. O motor Python permanece a **fonte única de verdade**: ele
+grava tabelas planas (*long*, star-schema) em `outputs/bi/`, e o Power BI só se conecta
+a elas e desenha visuais. **Zero cálculo de valuation em DAX.** Streamlit e Power BI não
+competem — trabalho do analista vs. entregável de apresentação.
+
+**O que entra AINDA na v1.0 (é decisão estrutural, não feature nova):**
+- `exportador_bi.py` gerando as tabelas planas em `outputs/bi/` (Semana 5, junto do Excel).
+- Excel "nível Direcional": **fórmulas nativas** nas células de cálculo (não valores
+  colados) + **convenção de cor de input** (azul = premissa, preto = fórmula, verde =
+  link). Deixar isso pra depois seria retrabalho no exportador.
+
+**O que é BACKLOG PÓS-v1.0 (só depois da tag `v1.0`) — detalhe na Seção 7 do `ROTEIRO.md`:**
+1. **Painel Power BI (`.pbix`)** em `powerbi/`, sobre as tabelas da v1.0 (alvo v1.5).
+2. **Comparáveis / CCA** — múltiplos de peers, fecha o "DCF + CCA" (alvo v2.0).
+3. **Projetado vs. Realizado** — análise de variância/FP&A; é uma lente nova sobre
+   DIRR3/MGLU3, não um setor novo (compatível com a regra de ouro do escopo) (alvo v2.0).
+4. **Nota de research em PDF** de 1 página (alvo v3.0).
+5. **Prova visual** no README (screenshots/GIF + case study DIRR3 vs. InFinance).
+
+O fluxo de 3 atores (Decisão 4) **não muda**: Humano dispara a mensagem-gatilho → Claude
+Code lê `CONTEXT.md` + `ROTEIRO.md` e gera o prompt cirúrgico → Codex implementa → Humano
+testa e atualiza o `CONTEXT.md`.
+
+---
+
 ## 🎨 ESPECIFICAÇÃO DE FRONT-END — a "cara Goldman/JPM/Morgan Stanley"
 
 Isto vale pro projeto inteiro e você vai referenciar em várias semanas, então li primeiro. Baseei nos princípios reais de UI institucional financeira que pesquisei.

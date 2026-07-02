@@ -233,4 +233,5 @@ logs/**
 !outputs/
 !outputs/excel/
 !outputs/graficos/
+!outputs/bi/
 !outputs/**/.gitkeep
